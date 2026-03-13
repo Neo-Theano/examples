@@ -1,0 +1,45 @@
+[workspace]
+resolver = "2"
+members = [
+    "mnist",
+    "mnist_hogwild",
+    "mnist_rnn",
+    "mnist_forward_forward",
+    "regression",
+    "reinforcement_learning",
+    "super_resolution",
+    "time_sequence_prediction",
+    "vae",
+    "dcgan",
+    "fast_neural_style",
+    "imagenet",
+    "word_language_model",
+    "language_translation",
+    "snli",
+    "siamese_network",
+    "gcn",
+    "gat",
+    "distributed",
+    "vision_transformer",
+    "fx",
+    "cpp",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+theano = { path = "../rusttorch/crates/theano" }
+theano-types = { path = "../rusttorch/crates/theano-types" }
+theano-core = { path = "../rusttorch/crates/theano-core" }
+theano-autograd = { path = "../rusttorch/crates/theano-autograd" }
+theano-nn = { path = "../rusttorch/crates/theano-nn" }
+theano-optim = { path = "../rusttorch/crates/theano-optim" }
+theano-data = { path = "../rusttorch/crates/theano-data" }
+theano-distributed = { path = "../rusttorch/crates/theano-distributed" }
+theano-jit = { path = "../rusttorch/crates/theano-jit" }
+theano-serialize = { path = "../rusttorch/crates/theano-serialize" }
+rand = "0.8"
+rand_distr = "0.4"

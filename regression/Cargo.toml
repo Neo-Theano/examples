@@ -1,0 +1,17 @@
+[package]
+name = "regression"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "regression"
+path = "src/main.rs"
+
+[dependencies]
+theano = { workspace = true }
+theano-core = { workspace = true }
+theano-autograd = { workspace = true }
+theano-nn = { workspace = true }
+theano-optim = { workspace = true }
+rand = { workspace = true }
+rand_distr = { workspace = true }

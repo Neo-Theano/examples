@@ -103,6 +103,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -118,6 +119,7 @@ dependencies = [
  "theano-distributed",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -166,6 +168,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -195,6 +198,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -209,6 +213,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -372,6 +377,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -386,6 +392,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -421,6 +428,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -435,6 +443,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -449,6 +458,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -463,6 +473,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -656,6 +667,7 @@ dependencies = [
  "theano-core",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -670,6 +682,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -705,6 +718,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -725,6 +739,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -739,6 +754,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -882,6 +898,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "theano-serialize"
+version = "0.1.0"
+dependencies = [
+ "theano-core",
+ "theano-types",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "theano-types"
 version = "0.1.0"
 dependencies = [
@@ -944,6 +969,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -964,6 +990,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -984,6 +1011,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]
@@ -1038,6 +1066,7 @@ dependencies = [
  "theano-data",
  "theano-nn",
  "theano-optim",
+ "theano-serialize",
 ]
 
 [[package]]

@@ -1,8 +1,7 @@
 //! Distributed Data Parallel (DDP) Training Example
 //!
 //! Demonstrates the distributed training API with a DistributedDataParallel
-//! wrapper.  Uses a single-process mock process group to show the API surface
-//! without requiring a multi-node setup.
+//! wrapper. Trains a SimpleModel and saves to `distributed_model.safetensors`.
 
 use std::sync::Arc;
 
@@ -13,8 +12,10 @@ use theano_distributed::{
     DistributedDataParallel, ProcessGroup, DistBackend,
     all_reduce, broadcast, barrier, CollReduceOp,
 };
-use theano_nn::{Linear, ReLU, Sequential, CrossEntropyLoss, Module};
+use theano_nn::CrossEntropyLoss;
 use theano_optim::{SGD, Optimizer};
+use theano_serialize::save_state_dict;
+use distributed::SimpleModel;
 
 // ---------------------------------------------------------------------------
 // Synthetic data
@@ -54,12 +55,7 @@ fn main() {
     // -----------------------------------------------------------------------
     // 2. Build model
     // -----------------------------------------------------------------------
-    let model = Sequential::new(vec![])
-        .add(Linear::new(128, 256))
-        .add(ReLU)
-        .add(Linear::new(256, 128))
-        .add(ReLU)
-        .add(Linear::new(128, 10));
+    let model = SimpleModel::new();
 
     let num_params: usize = model.parameters().iter().map(|p| p.tensor().numel()).sum();
     println!("Model parameters: {}", num_params);
@@ -163,5 +159,11 @@ fn main() {
     barrier(&pg);
     println!("barrier():         all ranks synchronised");
 
-    println!("\nDistributed training complete.");
+    // Save the trained model
+    let sd = model.state_dict();
+    let bytes = save_state_dict(&sd);
+    std::fs::write("distributed_model.safetensors", bytes).unwrap();
+
+    println!();
+    println!("Training complete. Model saved to distributed_model.safetensors");
 }

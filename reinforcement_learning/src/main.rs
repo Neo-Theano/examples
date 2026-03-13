@@ -8,18 +8,14 @@
 use rand::Rng;
 use theano_autograd::Variable;
 use theano_core::Tensor;
-use theano_nn::{Linear, Module};
 use theano_optim::{Adam, Optimizer};
+use theano_serialize::save_state_dict;
 
-// Hyperparameters
-const STATE_DIM: usize = 4;
-const NUM_ACTIONS: usize = 5;
-const HIDDEN_DIM: usize = 128;
-const GAMMA: f64 = 0.99; // discount factor
-const NUM_EPISODES: usize = 200;
-const EPISODE_BATCH_SIZE: usize = 10;
-const MAX_STEPS: usize = 20;
-const LEARNING_RATE: f64 = 0.01;
+use reinforcement_learning::{
+    compute_returns, sample_action, PolicyNetwork,
+    EPISODE_BATCH_SIZE, GAMMA, HIDDEN_DIM, LEARNING_RATE, MAX_STEPS,
+    NUM_ACTIONS, NUM_EPISODES, STATE_DIM,
+};
 
 /// Simple contextual bandit / grid environment.
 /// State: random vector in R^STATE_DIM.
@@ -70,71 +66,6 @@ impl SimpleEnvironment {
         let done = self.steps >= MAX_STEPS;
         (self.state.clone(), reward, done)
     }
-}
-
-/// Policy network for REINFORCE.
-struct PolicyNetwork {
-    fc1: Linear,
-    fc2: Linear,
-}
-
-impl PolicyNetwork {
-    fn new(state_dim: usize, hidden_dim: usize, num_actions: usize) -> Self {
-        Self {
-            fc1: Linear::new(state_dim, hidden_dim),
-            fc2: Linear::new(hidden_dim, num_actions),
-        }
-    }
-
-    /// Forward pass: state [1, state_dim] -> action probabilities [1, num_actions]
-    fn forward(&self, state: &Variable) -> Variable {
-        let h = self.fc1.forward(state).relu().unwrap();
-        let logits = self.fc2.forward(&h);
-        logits.softmax(-1).unwrap()
-    }
-
-    fn parameters(&self) -> Vec<Variable> {
-        let mut params = self.fc1.parameters();
-        params.extend(self.fc2.parameters());
-        params
-    }
-}
-
-/// Sample an action from the probability distribution.
-fn sample_action(probs: &[f64]) -> usize {
-    let mut rng = rand::thread_rng();
-    let r: f64 = rng.gen();
-    let mut cumsum = 0.0;
-    for (i, &p) in probs.iter().enumerate() {
-        cumsum += p;
-        if r < cumsum {
-            return i;
-        }
-    }
-    probs.len() - 1
-}
-
-/// Compute discounted returns from a sequence of rewards.
-fn compute_returns(rewards: &[f64], gamma: f64) -> Vec<f64> {
-    let n = rewards.len();
-    let mut returns = vec![0.0; n];
-    let mut running = 0.0;
-    for t in (0..n).rev() {
-        running = rewards[t] + gamma * running;
-        returns[t] = running;
-    }
-
-    // Normalize returns for stability
-    if n > 1 {
-        let mean: f64 = returns.iter().sum::<f64>() / n as f64;
-        let variance: f64 = returns.iter().map(|&r| (r - mean).powi(2)).sum::<f64>() / n as f64;
-        let std = (variance + 1e-8).sqrt();
-        for r in returns.iter_mut() {
-            *r = (*r - mean) / std;
-        }
-    }
-
-    returns
 }
 
 fn main() {
@@ -271,4 +202,10 @@ fn main() {
 
     println!();
     println!("Training complete.");
+
+    // Save the trained model
+    let sd = policy.state_dict();
+    let bytes = save_state_dict(&sd);
+    std::fs::write("rl_model.safetensors", bytes).unwrap();
+    println!("Model saved to rl_model.safetensors");
 }

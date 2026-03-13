@@ -7,142 +7,12 @@
 //!
 //! Uses synthetic random data that mimics real MNIST shapes (28x28 grayscale images).
 
-use rand::Rng;
 use theano::prelude::*;
-use theano_nn::{
-    Conv2d, CrossEntropyLoss, Dropout, Flatten, Linear, MaxPool2d, Module, ReLU,
-};
+use theano_nn::CrossEntropyLoss;
 use theano_optim::{Adam, Optimizer};
+use theano_serialize::save_state_dict;
 
-/// CNN model for MNIST digit classification.
-struct MnistCNN {
-    conv1: Conv2d,
-    conv2: Conv2d,
-    pool: MaxPool2d,
-    dropout1: Dropout,
-    flatten: Flatten,
-    fc1: Linear,
-    relu: ReLU,
-    dropout2: Dropout,
-    fc2: Linear,
-}
-
-impl MnistCNN {
-    fn new() -> Self {
-        Self {
-            conv1: Conv2d::new(1, 32, 3),
-            conv2: Conv2d::new(32, 64, 3),
-            pool: MaxPool2d::new(2),
-            dropout1: Dropout::new(0.25),
-            flatten: Flatten::new(),
-            fc1: Linear::new(9216, 128),
-            relu: ReLU,
-            dropout2: Dropout::new(0.5),
-            fc2: Linear::new(128, 10),
-        }
-    }
-
-    fn forward(&self, x: &Variable) -> Variable {
-        // Conv block 1: Conv2d(1,32,3) -> ReLU
-        let x = self.conv1.forward(x);
-        let x = x.relu().unwrap();
-
-        // Conv block 2: Conv2d(32,64,3) -> ReLU -> MaxPool2d(2)
-        let x = self.conv2.forward(&x);
-        let x = x.relu().unwrap();
-        let x = self.pool.forward(&x);
-
-        // Dropout -> Flatten
-        let x = self.dropout1.forward(&x);
-        let x = self.flatten.forward(&x);
-
-        // FC block: Linear(9216,128) -> ReLU -> Dropout(0.5) -> Linear(128,10)
-        let x = self.fc1.forward(&x);
-        let x = self.relu.forward(&x);
-        let x = self.dropout2.forward(&x);
-        self.fc2.forward(&x)
-    }
-
-    fn parameters(&self) -> Vec<Variable> {
-        let mut params = Vec::new();
-        params.extend(self.conv1.parameters());
-        params.extend(self.conv2.parameters());
-        params.extend(self.fc1.parameters());
-        params.extend(self.fc2.parameters());
-        params
-    }
-
-    fn set_eval(&mut self) {
-        self.dropout1.eval();
-        self.dropout2.eval();
-    }
-
-    fn set_train(&mut self) {
-        self.dropout1.train();
-        self.dropout2.train();
-    }
-}
-
-/// Print the model architecture and total parameter count.
-fn print_model_summary(model: &MnistCNN) {
-    println!("=== MNIST CNN Architecture ===");
-    println!("  Conv2d(1, 32, kernel_size=3)    -> ReLU");
-    println!("  Conv2d(32, 64, kernel_size=3)   -> ReLU -> MaxPool2d(2)");
-    println!("  Dropout(0.25)");
-    println!("  Flatten");
-    println!("  Linear(9216, 128)               -> ReLU");
-    println!("  Dropout(0.5)");
-    println!("  Linear(128, 10)");
-    println!("==============================");
-
-    let total_params: usize = model
-        .parameters()
-        .iter()
-        .map(|p| p.tensor().numel())
-        .sum();
-    println!("Total trainable parameters: {}", total_params);
-    println!();
-}
-
-/// Generate a batch of synthetic MNIST-like data.
-/// Returns (images: [N, 1, 28, 28], labels: [N]).
-fn generate_batch(batch_size: usize) -> (Tensor, Tensor) {
-    let mut rng = rand::thread_rng();
-    let img_numel = batch_size * 1 * 28 * 28;
-    let img_data: Vec<f64> = (0..img_numel).map(|_| rng.gen::<f64>()).collect();
-    let label_data: Vec<f64> = (0..batch_size)
-        .map(|_| rng.gen_range(0..10) as f64)
-        .collect();
-
-    let images = Tensor::from_slice(&img_data, &[batch_size, 1, 28, 28]);
-    let labels = Tensor::from_slice(&label_data, &[batch_size]);
-    (images, labels)
-}
-
-/// Compute accuracy: fraction of correct predictions.
-fn accuracy(logits: &Tensor, labels: &Tensor) -> f64 {
-    let n = logits.shape()[0];
-    let c = logits.shape()[1];
-    let logits_data = logits.to_vec_f64().unwrap();
-    let labels_data = labels.to_vec_f64().unwrap();
-
-    let mut correct = 0;
-    for i in 0..n {
-        let mut best_class = 0;
-        let mut best_val = f64::NEG_INFINITY;
-        for j in 0..c {
-            let v = logits_data[i * c + j];
-            if v > best_val {
-                best_val = v;
-                best_class = j;
-            }
-        }
-        if best_class == labels_data[i] as usize {
-            correct += 1;
-        }
-    }
-    correct as f64 / n as f64
-}
+use mnist::{accuracy, generate_batch, print_model_summary, MnistCNN};
 
 fn main() {
     println!("Neo Theano — MNIST CNN Example");
@@ -236,4 +106,10 @@ fn main() {
     println!(
         "(Note: accuracy is ~10% random baseline since we use synthetic data)"
     );
+
+    // Save the trained model
+    let sd = model.state_dict();
+    let bytes = save_state_dict(&sd);
+    std::fs::write("mnist_model.safetensors", bytes).unwrap();
+    println!("Model saved to mnist_model.safetensors");
 }

@@ -8,98 +8,12 @@
 //! (or atomic operations on model parameters), this example shows the API structure
 //! and simulates multi-process training sequentially.
 
-use rand::Rng;
 use theano::prelude::*;
-use theano_nn::{
-    Conv2d, CrossEntropyLoss, Dropout, Flatten, Linear, MaxPool2d, Module, ReLU,
-};
+use theano_nn::CrossEntropyLoss;
 use theano_optim::{Adam, Optimizer};
+use theano_serialize::save_state_dict;
 
-/// CNN model for MNIST — same architecture as the basic mnist example.
-struct MnistCNN {
-    conv1: Conv2d,
-    conv2: Conv2d,
-    pool: MaxPool2d,
-    dropout1: Dropout,
-    flatten: Flatten,
-    fc1: Linear,
-    relu: ReLU,
-    dropout2: Dropout,
-    fc2: Linear,
-}
-
-impl MnistCNN {
-    fn new() -> Self {
-        Self {
-            conv1: Conv2d::new(1, 32, 3),
-            conv2: Conv2d::new(32, 64, 3),
-            pool: MaxPool2d::new(2),
-            dropout1: Dropout::new(0.25),
-            flatten: Flatten::new(),
-            fc1: Linear::new(9216, 128),
-            relu: ReLU,
-            dropout2: Dropout::new(0.5),
-            fc2: Linear::new(128, 10),
-        }
-    }
-
-    fn forward(&self, x: &Variable) -> Variable {
-        let x = self.conv1.forward(x);
-        let x = x.relu().unwrap();
-        let x = self.conv2.forward(&x);
-        let x = x.relu().unwrap();
-        let x = self.pool.forward(&x);
-        let x = self.dropout1.forward(&x);
-        let x = self.flatten.forward(&x);
-        let x = self.fc1.forward(&x);
-        let x = self.relu.forward(&x);
-        let x = self.dropout2.forward(&x);
-        self.fc2.forward(&x)
-    }
-
-    fn parameters(&self) -> Vec<Variable> {
-        let mut params = Vec::new();
-        params.extend(self.conv1.parameters());
-        params.extend(self.conv2.parameters());
-        params.extend(self.fc1.parameters());
-        params.extend(self.fc2.parameters());
-        params
-    }
-
-    fn set_eval(&mut self) {
-        self.dropout1.eval();
-        self.dropout2.eval();
-    }
-
-    fn set_train(&mut self) {
-        self.dropout1.train();
-        self.dropout2.train();
-    }
-}
-
-/// Print the model architecture and total parameter count.
-fn print_model_summary(model: &MnistCNN) {
-    let total_params: usize = model
-        .parameters()
-        .iter()
-        .map(|p| p.tensor().numel())
-        .sum();
-    println!("Model: MNIST CNN ({} parameters)", total_params);
-}
-
-/// Generate a batch of synthetic MNIST-like data.
-fn generate_batch(batch_size: usize) -> (Tensor, Tensor) {
-    let mut rng = rand::thread_rng();
-    let img_numel = batch_size * 1 * 28 * 28;
-    let img_data: Vec<f64> = (0..img_numel).map(|_| rng.gen::<f64>()).collect();
-    let label_data: Vec<f64> = (0..batch_size)
-        .map(|_| rng.gen_range(0..10) as f64)
-        .collect();
-
-    let images = Tensor::from_slice(&img_data, &[batch_size, 1, 28, 28]);
-    let labels = Tensor::from_slice(&label_data, &[batch_size]);
-    (images, labels)
-}
+use mnist_hogwild::{generate_batch, print_model_summary, MnistCNN};
 
 /// Simulate Hogwild training for a single worker process.
 ///
@@ -175,8 +89,6 @@ fn main() {
     );
 
     // Build the shared model
-    // In real Hogwild!, model parameters live in shared memory (e.g., via mmap or
-    // shared Arc<AtomicF64> parameters). All processes read/write without locks.
     let mut model = MnistCNN::new();
     print_model_summary(&model);
 
@@ -187,22 +99,7 @@ fn main() {
         println!("\n--- Epoch {}/{} ---", epoch + 1, num_epochs);
         model.set_train();
 
-        // In real Hogwild!, each worker would be spawned as a separate thread:
-        //
-        //   let model = Arc::new(model);  // shared model
-        //   let handles: Vec<_> = (0..num_processes).map(|worker_id| {
-        //       let model = model.clone();
-        //       std::thread::spawn(move || {
-        //           train_worker(worker_id, &model, ...);
-        //       })
-        //   }).collect();
-        //   for h in handles { h.join().unwrap(); }
-        //
-        // Here we simulate sequentially to show the pattern:
-
         for worker_id in 0..num_processes {
-            // Each worker gets its own optimizer that updates the shared model params.
-            // In real Hogwild, gradient updates race on shared memory.
             let params = model.parameters();
             let mut optimizer = Adam::new(params, lr);
             train_worker(
@@ -257,4 +154,10 @@ fn main() {
         total_samples
     );
     println!("(Note: accuracy is ~10% random baseline since we use synthetic data)");
+
+    // Save the trained model
+    let sd = model.state_dict();
+    let bytes = save_state_dict(&sd);
+    std::fs::write("mnist_hogwild_model.safetensors", bytes).unwrap();
+    println!("Model saved to mnist_hogwild_model.safetensors");
 }

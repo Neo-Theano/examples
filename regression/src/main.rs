@@ -3,47 +3,12 @@
 //! Demonstrates basic regression with polynomial features, MSE loss, and SGD optimizer.
 //! A simple but complete training pipeline showing the fundamentals.
 
-use rand::Rng;
-use rand_distr::{Distribution, Normal};
 use theano::prelude::*;
-use theano_nn::{Linear, MSELoss, Module};
+use theano_nn::MSELoss;
 use theano_optim::{Optimizer, SGD};
+use theano_serialize::save_state_dict;
 
-/// True polynomial coefficients: y = a*x^3 + b*x^2 + c*x + d
-const TRUE_A: f64 = 0.5;
-const TRUE_B: f64 = -1.2;
-const TRUE_C: f64 = 2.0;
-const TRUE_D: f64 = -0.3;
-
-/// Generate synthetic polynomial data.
-///
-/// Returns (features, targets) where features has polynomial columns [x, x^2, x^3]
-/// and targets = a*x^3 + b*x^2 + c*x + d + noise.
-fn generate_data(n: usize, noise_std: f64) -> (Tensor, Tensor) {
-    let mut rng = rand::thread_rng();
-    let noise_dist = Normal::new(0.0, noise_std).unwrap();
-
-    let mut features = vec![0.0f64; n * 3]; // [x, x^2, x^3]
-    let mut targets = vec![0.0f64; n];
-
-    for i in 0..n {
-        let x: f64 = rng.gen_range(-3.0..3.0);
-        let x2 = x * x;
-        let x3 = x2 * x;
-
-        features[i * 3] = x;
-        features[i * 3 + 1] = x2;
-        features[i * 3 + 2] = x3;
-
-        let y = TRUE_A * x3 + TRUE_B * x2 + TRUE_C * x + TRUE_D;
-        let noise: f64 = noise_dist.sample(&mut rng);
-        targets[i] = y + noise;
-    }
-
-    let feat_tensor = Tensor::from_slice(&features, &[n, 3]);
-    let target_tensor = Tensor::from_slice(&targets, &[n, 1]);
-    (feat_tensor, target_tensor)
-}
+use regression::{generate_data, PolynomialRegression, TRUE_A, TRUE_B, TRUE_C, TRUE_D};
 
 fn main() {
     println!("Neo Theano — Polynomial Regression Example");
@@ -65,7 +30,7 @@ fn main() {
     let (test_features, test_targets) = generate_data(num_test, noise_std);
 
     // Model: Linear(3, 1) — learns weights for [x, x^2, x^3] and a bias (the constant d)
-    let model = Linear::new(3, 1);
+    let model = PolynomialRegression::new();
 
     println!("=== Model Architecture ===");
     println!("  Linear(3, 1)  — maps polynomial features [x, x^2, x^3] to y");
@@ -141,4 +106,10 @@ fn main() {
     println!(
         "  Final coefficients are close to true values (within noise tolerance)."
     );
+
+    // Save the trained model
+    let sd = model.state_dict();
+    let bytes = save_state_dict(&sd);
+    std::fs::write("regression_model.safetensors", bytes).unwrap();
+    println!("Model saved to regression_model.safetensors");
 }

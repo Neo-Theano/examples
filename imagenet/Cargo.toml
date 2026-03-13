@@ -3,9 +3,17 @@ name = "imagenet"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+name = "imagenet"
+path = "src/lib.rs"
+
 [[bin]]
 name = "imagenet"
 path = "src/main.rs"
+
+[[bin]]
+name = "imagenet-infer"
+path = "src/bin/infer.rs"
 
 [dependencies]
 theano = { workspace = true }
@@ -14,5 +22,6 @@ theano-autograd = { workspace = true }
 theano-nn = { workspace = true }
 theano-optim = { workspace = true }
 theano-data = { workspace = true }
+theano-serialize = { workspace = true }
 rand = { workspace = true }
 rand_distr = { workspace = true }

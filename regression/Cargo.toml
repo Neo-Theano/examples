@@ -3,9 +3,16 @@ name = "regression"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+path = "src/lib.rs"
+
 [[bin]]
 name = "regression"
 path = "src/main.rs"
+
+[[bin]]
+name = "regression-infer"
+path = "src/bin/infer.rs"
 
 [dependencies]
 theano = { workspace = true }
@@ -13,5 +20,6 @@ theano-core = { workspace = true }
 theano-autograd = { workspace = true }
 theano-nn = { workspace = true }
 theano-optim = { workspace = true }
+theano-serialize = { workspace = true }
 rand = { workspace = true }
 rand_distr = { workspace = true }

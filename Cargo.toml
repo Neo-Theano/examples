@@ -31,15 +31,15 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-theano = { path = "../neo-theano/crates/theano" }
-theano-types = { path = "../neo-theano/crates/theano-types" }
-theano-core = { path = "../neo-theano/crates/theano-core" }
-theano-autograd = { path = "../neo-theano/crates/theano-autograd" }
-theano-nn = { path = "../neo-theano/crates/theano-nn" }
-theano-optim = { path = "../neo-theano/crates/theano-optim" }
-theano-data = { path = "../neo-theano/crates/theano-data" }
-theano-distributed = { path = "../neo-theano/crates/theano-distributed" }
-theano-jit = { path = "../neo-theano/crates/theano-jit" }
-theano-serialize = { path = "../neo-theano/crates/theano-serialize" }
+theano = { path = "../theano/crates/theano" }
+theano-types = { path = "../theano/crates/theano-types" }
+theano-core = { path = "../theano/crates/theano-core" }
+theano-autograd = { path = "../theano/crates/theano-autograd" }
+theano-nn = { path = "../theano/crates/theano-nn" }
+theano-optim = { path = "../theano/crates/theano-optim" }
+theano-data = { path = "../theano/crates/theano-data" }
+theano-distributed = { path = "../theano/crates/theano-distributed" }
+theano-jit = { path = "../theano/crates/theano-jit" }
+theano-serialize = { path = "../theano/crates/theano-serialize" }
 rand = "0.8"
 rand_distr = "0.4"

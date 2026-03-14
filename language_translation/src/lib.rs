@@ -181,7 +181,7 @@ impl TransformerEncoder {
     }
 
     pub fn from_state_dict(sd: &HashMap<String, Tensor>, prefix: &str) -> Self {
-        let embed_dim = sd[&format!("{prefix}fc.weight")].shape()[0];
+        let _embed_dim = sd[&format!("{prefix}fc.weight")].shape()[0];
         Self {
             embedding: Embedding::from_tensors(
                 sd[&format!("{prefix}embedding.weight")].clone(),

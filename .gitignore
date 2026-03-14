@@ -6,3 +6,5 @@
 .env
 # Downloaded datasets
 data/
+# Trained model files
+*.safetensors

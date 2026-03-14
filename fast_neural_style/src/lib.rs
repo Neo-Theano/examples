@@ -61,14 +61,14 @@ impl ResidualBlock {
         let _ = channels; // stride and padding are fixed for residual blocks
         Self {
             conv1: Conv2d::from_tensors(
-                sd[&format!("{prefix}conv1.weight")].clone(),
-                Some(sd[&format!("{prefix}conv1.bias")].clone()),
+                sd[&format!("{prefix}conv1.param_0")].clone(),
+                Some(sd[&format!("{prefix}conv1.param_1")].clone()),
                 (1, 1),
                 (1, 1),
             ),
             conv2: Conv2d::from_tensors(
-                sd[&format!("{prefix}conv2.weight")].clone(),
-                Some(sd[&format!("{prefix}conv2.bias")].clone()),
+                sd[&format!("{prefix}conv2.param_0")].clone(),
+                Some(sd[&format!("{prefix}conv2.param_1")].clone()),
                 (1, 1),
                 (1, 1),
             ),
@@ -171,40 +171,40 @@ impl TransformerNet {
     pub fn from_state_dict(sd: &HashMap<String, Tensor>) -> Self {
         Self {
             enc_conv1: Conv2d::from_tensors(
-                sd["enc_conv1.weight"].clone(),
-                Some(sd["enc_conv1.bias"].clone()),
+                sd["enc_conv1.param_0"].clone(),
+                Some(sd["enc_conv1.param_1"].clone()),
                 (1, 1),
                 (1, 1),
             ),
             enc_conv2: Conv2d::from_tensors(
-                sd["enc_conv2.weight"].clone(),
-                Some(sd["enc_conv2.bias"].clone()),
+                sd["enc_conv2.param_0"].clone(),
+                Some(sd["enc_conv2.param_1"].clone()),
                 (2, 2),
                 (1, 1),
             ),
             enc_conv3: Conv2d::from_tensors(
-                sd["enc_conv3.weight"].clone(),
-                Some(sd["enc_conv3.bias"].clone()),
+                sd["enc_conv3.param_0"].clone(),
+                Some(sd["enc_conv3.param_1"].clone()),
                 (2, 2),
                 (1, 1),
             ),
             res1: ResidualBlock::from_state_dict(sd, "res_blocks.0.", 128),
             res2: ResidualBlock::from_state_dict(sd, "res_blocks.1.", 128),
             dec_conv1: Conv2d::from_tensors(
-                sd["dec_conv1.weight"].clone(),
-                Some(sd["dec_conv1.bias"].clone()),
+                sd["dec_conv1.param_0"].clone(),
+                Some(sd["dec_conv1.param_1"].clone()),
                 (1, 1),
                 (1, 1),
             ),
             dec_conv2: Conv2d::from_tensors(
-                sd["dec_conv2.weight"].clone(),
-                Some(sd["dec_conv2.bias"].clone()),
+                sd["dec_conv2.param_0"].clone(),
+                Some(sd["dec_conv2.param_1"].clone()),
                 (1, 1),
                 (1, 1),
             ),
             dec_conv3: Conv2d::from_tensors(
-                sd["dec_conv3.weight"].clone(),
-                Some(sd["dec_conv3.bias"].clone()),
+                sd["dec_conv3.param_0"].clone(),
+                Some(sd["dec_conv3.param_1"].clone()),
                 (1, 1),
                 (1, 1),
             ),
